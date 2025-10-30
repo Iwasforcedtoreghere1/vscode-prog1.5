@@ -41,6 +41,12 @@ class Player(GameSprite):
             self.rect.bottom = ground.rect.top
             self.vel_y = 0
             self.on_ground = True
+        for p in platforms:
+            if sprite.collide_rect(self, p) and self.vel_y >= 0:
+                if self.rect.bottom > p.rect.top and self.rect.bottom < p.rect.centery + 10:
+                    self.rect.bottom = p.rect.top       
+                    self.vel_y = 0
+                    self.on_ground = True        
 
 class Platform(GameSprite):
     def __init__(self, color, x, y, width, height, speed):
@@ -56,14 +62,17 @@ player = Player(colorb, 100, win_height - 200, 50, 70, 5)
 
 
 platform_excist = False
+platforms = sprite.Group()
+    
 def create_platform():
-    platform = Platform(colorb, win_width, 100, 100, 30, 5)
+    platform = Platform(colorb, win_width, 290, 250, 30, 4)
     return platform
 
 clock = time.Clock()
 
 run = True
 while run:
+    window.fill((255, 255, 255))
     for e in event.get():
         if e.type == QUIT:
             run = False
@@ -71,11 +80,12 @@ while run:
     if platform_excist == False:
         new_platform = create_platform()
         platform_excist = True
+        platforms.add(new_platform)
     if platform_excist:
         new_platform.update()
         new_platform.reset()
 
-    window.fill((255, 255, 255))
+    
     player.update()
     ground.reset()
     player.reset()
