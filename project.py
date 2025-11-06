@@ -1,9 +1,16 @@
 from pygame import *
 from random import *
 
+font.init()
+font = font.Font(None, 36)
+
+
 win_width = 700
 win_height = 500
 FPS = 60
+
+score = 0
+points = []
 
 colorb = (0, 0, 0)
 
@@ -56,17 +63,35 @@ class Platform(GameSprite):
         self.rect.x -= self.speed
         if self.rect.x < 0 - self.width:
             self.rect.x = win_width + 10
+        if self.rect.x < -self.width:
+            self.rect.x = win_width + randint(0, 200)
+            self.rect.y = randint(200, 350)
+            for _ in range(randint(1, 2)):
+                x = self.rect.x + randint(10, self.width-10)
+                y = self.rect.y - 10
+                points.add(Point(x, y))
+
+class Point(GameSprite):
+    def __init__(self, x, y):
+        super().__init__((0, 0, 0), x, y, 14, 14) 
+        self.radius = 7
+
+    def draw(self):
+        draw.circle(window, (0, 0, 0), (self.rect.x, self.rect.y), self.radius)
+
 
 ground = GameSprite(colorb, 0, win_height - 120, win_width, 120)
 player = Player(colorb, 100, win_height - 200, 50, 70, 5)
 
-
-platform_excist = False
+points = sprite.Group()
 platforms = sprite.Group()
-    
-def create_platform():
-    platform = Platform(colorb, win_width, 290, 250, 30, 4)
-    return platform
+
+for p in range(3):
+    x = win_width + randint(0, 200)  
+    y = randint(300, 250)            
+    width = randint(100, 350)
+    new_platform = Platform(colorb, x, y, width, 30, 4)
+    platforms.add(new_platform)
 
 clock = time.Clock()
 
@@ -77,17 +102,18 @@ while run:
         if e.type == QUIT:
             run = False
 
-    if platform_excist == False:
-        new_platform = create_platform()
-        platform_excist = True
-        platforms.add(new_platform)
-    if platform_excist:
-        new_platform.update()
-        new_platform.reset()
+    for p in points:
+        if player.rect.colliderect(p.rect):
+            points.remove(p)
+            score += 1
 
-    
+    platforms.update()
+    platforms.draw(window)
+    for p in points:
+        p.draw()
     player.update()
     ground.reset()
     player.reset()
+    window.blit(font.render(f"Score: {score}", True, (0,0,0)), (10,10))
     display.update()
     clock.tick(FPS)
